@@ -23,8 +23,11 @@ class Socialcord {
     }
     start() {
         bdapi_1.BdApi.alert("CORRM", "Just check");
+        bdapi_1.BdApi.showToast("fdsfsdf");
     }
     stop() {
+    }
+    getSettingsPanel() {
     }
 }
 exports.Socialcord = Socialcord;
