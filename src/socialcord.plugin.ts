@@ -1,6 +1,6 @@
 /**
  * @name Socialcord
- * @version 1.0.0
+ * @version 0.1.0
  * @description nothing
  * 
  * @website http://twitter.com/BandagedBD
@@ -19,7 +19,7 @@ export class Socialcord {
     }
 
     public getVersion(): string {
-        return "1.0.0";
+        return "0.1.0";
     }
 
     public getAuthor(): string {
@@ -28,9 +28,14 @@ export class Socialcord {
 
     public start(): void {
         BdApi.alert("CORRM", "Just check");
+        BdApi.showToast("fdsfsdf");
     }
 
     public stop(): void {
+        
+    }
+
+    public getSettingsPanel(): void {
 
     }
 }
