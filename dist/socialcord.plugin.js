@@ -1,6 +1,6 @@
 /**
  * @name Socialcord
- * @version 1.0.0
+ * @version 0.1.0
  * @description nothing
  *
  * @website http://twitter.com/BandagedBD
@@ -16,14 +16,13 @@ class Socialcord {
         return "Describe the basic functions. Maybe a support server link";
     }
     getVersion() {
-        return "1.0.0";
+        return "0.1.0";
     }
     getAuthor() {
         return "CorrM";
     }
     start() {
         bdapi_1.BdApi.alert("CORRM", "Just check");
-        bdapi_1.BdApi.showToast("fdsfsdf");
     }
     stop() {
     }

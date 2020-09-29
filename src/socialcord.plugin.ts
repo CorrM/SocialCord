@@ -8,34 +8,41 @@
 
 import { BdApi } from "@bandagedbd/bdapi";
 
-export class Socialcord {
+export class Socialcord
+{
 
-    public getName(): string {
+    public getName(): string
+    {
         return "Socialcord";
     }
 
-    public getDescription(): string {
+    public getDescription(): string
+    {
         return "Describe the basic functions. Maybe a support server link";
     }
 
-    public getVersion(): string {
+    public getVersion(): string
+    {
         return "0.1.0";
     }
 
-    public getAuthor(): string {
+    public getAuthor(): string
+    {
         return "CorrM";
     }
 
-    public start(): void {
+    public start(): void
+    {
         BdApi.alert("CORRM", "Just check");
-        BdApi.showToast("fdsfsdf");
     }
 
-    public stop(): void {
-        
+    public stop(): void
+    {
+
     }
 
-    public getSettingsPanel(): void {
+    public getSettingsPanel(): void
+    {
 
     }
 }

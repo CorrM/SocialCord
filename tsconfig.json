@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "module": "CommonJS",
         "noImplicitUseStrict": true,
         "alwaysStrict": false,
         "strict": true,
@@ -7,7 +8,7 @@
         "strictNullChecks": true,
         "target": "ESNext",
         "outDir": "dist",
-        "module": "commonjs",
+        // "outFile": "dist/socialcord.plugin.js",
         "moduleResolution": "node",
         "sourceMap": false,
         "lib": [
