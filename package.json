@@ -8,14 +8,18 @@
         "dist"
     ],
     "scripts": {
-        "fixTypeImp": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
-        "copyToPlugin": "copy dist\\socialcord.plugin.js \"%appdata%\\BetterDiscord\\plugins\\socialcord.plugin.js\"",
-        "build": "tsc && npm run fixTypeImp && npm run copyToPlugin",
+        "copyTDLib": "xcopy /s /i /y node_modules\\tdweb\\dist dist\\socialcord\\tdweb",
+        "fixTypeImp1": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
+        "fixTypeImp2": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"tdweb\\\"\\)','require(\\\"./socialcord/tdweb/tdweb\\\")')",
+        "copyToPlugin": "xcopy /s /i /y dist \"%appdata%\\BetterDiscord\\plugins\"",
+        "build": "tsc && npm run copyTDLib && npm run fixTypeImp1 && npm run fixTypeImp2 && npm run copyToPlugin",
         "prepare": "npm run build"
     },
     "author": "corrm",
     "license": "ISC",
     "dependencies": {
-        "@types/bandagedbd__bdapi": "^0.2.2"
+        "@types/bandagedbd__bdapi": "^0.2.2",
+        "@types/tdweb": "^1.4.1",
+        "tdweb": "^1.6.7"
     }
 }
