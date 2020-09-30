@@ -8,9 +8,9 @@
         "dist"
     ],
     "scripts": {
-        "copyTDLib": "xcopy /s /i /y node_modules\\tdweb\\dist dist\\socialcord\\tdweb",
+        "copyTDLib": "xcopy /s /i /y node_modules\\tdweb\\dist dist\\public",
         "fixTypeImp1": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
-        "fixTypeImp2": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"tdweb\\\"\\)','require(\\\"./socialcord/tdweb/tdweb\\\")')",
+        "fixTypeImp2": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"tdweb\\\"\\)','require(\\\"./public/tdweb\\\")')",
         "copyToPlugin": "xcopy /s /i /y dist \"%appdata%\\BetterDiscord\\plugins\"",
         "build": "tsc && npm run copyTDLib && npm run fixTypeImp1 && npm run fixTypeImp2 && npm run copyToPlugin",
         "prepare": "npm run build"

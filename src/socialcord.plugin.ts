@@ -9,14 +9,16 @@
 import { BdApi } from "@bandagedbd/bdapi";
 import TdClient, { TdError, TdObject, TdOptions } from "tdweb";
 
-class TdManager {
+class TdManager
+{
     private static WASM_FILE_NAME = 'a848b8b40a9281225b96b8d300a07767.wasm';
     private static WASM_FILE_HASH = TdManager.WASM_FILE_NAME.replace('.wasm', '');
 
     private client: TdClient;
     public onUpdateCallBack?: (update: TdObject) => any;
 
-    public constructor() {
+    public constructor()
+    {
         const opts: TdOptions = {
             logVerbosityLevel: 0,
             jsLogVerbosityLevel: "error",
@@ -26,7 +28,8 @@ class TdManager {
             isBackground: false,
             useDatabase: false,
             //wasmUrl: `${this.WASM_FILE_NAME}?_sw-precache=${this.WASM_FILE_HASH}`,
-            onUpdate: (update: TdObject) => {
+            onUpdate: (update: TdObject) =>
+            {
                 if (this.onUpdateCallBack)
                     return this.onUpdateCallBack(update);
             }
@@ -35,8 +38,9 @@ class TdManager {
         this.client = new TdClient(opts);
     }
 
-    public async Send(query: TdObject): Promise<TdError | TdObject> {
-        console.log(console.log('Send : ', query));
+    public async Send(query: TdObject): Promise<TdError | TdObject>
+    {
+        console.log("Send : ", query);
         return this.client.send(query);
     }
 }
@@ -68,20 +72,20 @@ export class Socialcord
         BdApi.alert("CORRM", BdApi.React.version);
 
         const tObj: TdObject = {
-            "@type": "logOut",
-            "@extra": "sad"
+            "@type": "getAuthorizationState"
         };
 
         const client = new TdManager();
-        client.onUpdateCallBack = (update: TdObject) => console.log('UPDATE : ', update);
+        client.onUpdateCallBack = this.OnRecv;
 
-        try {
-            const result = await client.Send(tObj);
-            console.log("Result : ", result);
-        } catch (error) {
-            console.error(error);
+        try
+        {
+            //const result = client.Send(tObj);
+            //console.log("Result : ", result);
+        } catch (error)
+        {
+            console.error("error : ", error);
         }
-        console.log("FINISHED");
     }
 
     public stop(): void
@@ -92,5 +96,9 @@ export class Socialcord
     public getSettingsPanel(): void
     {
 
+    }
+
+    private OnRecv(update: TdObject): void {
+        console.log('UPDATE : ', update);
     }
 }

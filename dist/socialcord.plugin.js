@@ -8,7 +8,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Socialcord = void 0;
 const bdapi_1 = { BdApi };
-const tdweb_1 = require("./socialcord/tdweb/tdweb");
+const tdweb_1 = require("./public/tdweb");
 class TdManager {
     constructor() {
         const opts = {
@@ -28,7 +28,7 @@ class TdManager {
         this.client = new tdweb_1.default(opts);
     }
     async Send(query) {
-        console.log(console.log('Send : ', query));
+        console.log("Send : ", query);
         return this.client.send(query);
     }
 }
@@ -50,23 +50,24 @@ class Socialcord {
     async start() {
         bdapi_1.BdApi.alert("CORRM", bdapi_1.BdApi.React.version);
         const tObj = {
-            "@type": "logOut",
-            "@extra": "sad"
+            "@type": "getAuthorizationState"
         };
         const client = new TdManager();
-        client.onUpdateCallBack = (update) => console.log('UPDATE : ', update);
+        client.onUpdateCallBack = this.OnRecv;
         try {
-            const result = await client.Send(tObj);
-            console.log("Result : ", result);
+            //const result = client.Send(tObj);
+            //console.log("Result : ", result);
         }
         catch (error) {
-            console.error(error);
+            console.error("error : ", error);
         }
-        console.log("FINISHED");
     }
     stop() {
     }
     getSettingsPanel() {
+    }
+    OnRecv(update) {
+        console.log('UPDATE : ', update);
     }
 }
 exports.Socialcord = Socialcord;
