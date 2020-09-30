@@ -7,41 +7,127 @@
  */
 
 import { BdApi } from "@bandagedbd/bdapi";
-import TdClient, { TdError, TdObject, TdOptions } from "tdweb";
+import { MTProto, getSRPParams } from "@mtproto/core";
 
 class TdManager
 {
-    private static WASM_FILE_NAME = 'a848b8b40a9281225b96b8d300a07767.wasm';
-    private static WASM_FILE_HASH = TdManager.WASM_FILE_NAME.replace('.wasm', '');
+    private static API_ID: number = 1827466;
+    private static API_HASH: string = "fd0ff6bb6cffff0a4e5ff308c9c4154c";
 
-    private client: TdClient;
-    public onUpdateCallBack?: (update: TdObject) => any;
+    private client: MTProto;
+    // public onUpdateCallBack?: (update: TdObject) => any;
 
     public constructor()
     {
-        const opts: TdOptions = {
-            logVerbosityLevel: 0,
-            jsLogVerbosityLevel: "error",
-            mode: "wasm",
-            instanceName: "tdlib",
-            readOnly: false,
-            isBackground: false,
-            useDatabase: false,
-            //wasmUrl: `${this.WASM_FILE_NAME}?_sw-precache=${this.WASM_FILE_HASH}`,
-            onUpdate: (update: TdObject) =>
-            {
-                if (this.onUpdateCallBack)
-                    return this.onUpdateCallBack(update);
-            }
-        };
-
-        this.client = new TdClient(opts);
+        this.client = new MTProto({
+            api_id: TdManager.API_ID,
+            api_hash: TdManager.API_HASH
+        });
     }
 
-    public async Send(query: TdObject): Promise<TdError | TdObject>
+    private SendCode(phone: string): Promise<any>
     {
-        console.log("Send : ", query);
-        return this.client.send(query);
+        return this.Call("auth.sendCode", {
+            phone_number: phone,
+            settings: {
+                _: "codeSettings",
+            },
+        });
+    }
+
+    private SignIn(phone: string, phoneCodeHash: string, code: string): Promise<any>
+    {
+        return this.Call("auth.signIn", {
+            phone_number: phone,
+            phone_code_hash: phoneCodeHash,
+            phone_code: code,
+        });
+    }
+
+    private GetPassword(): Promise<any>
+    {
+        return this.Call("account.getPassword");
+    }
+
+    private CheckPassword(srp_id: string, A: string, M1: string)
+    {
+        return this.Call("auth.checkPassword", {
+            password: {
+                _: "inputCheckPasswordSRP",
+                srp_id,
+                A,
+                M1,
+            },
+        });
+    }
+
+    public SetDefaultDc(dcId: number): Promise<string>
+    {
+        return this.client.setDefaultDc(dcId);
+    }
+
+    public Call(method: string, params: object = {}, options: object = {}): Promise<any>
+    {
+        console.log(`Send "${method}" : `, params);
+
+        return new Promise<any>(async (resolve, reject) =>
+        {
+            try
+            {
+                return resolve(await this.client.call(method, params));
+            }
+            catch (error)
+            {
+                console.log(`"${method}" error: `, error);
+
+                const { error_code, error_message } = error;
+                if (error_code === 303)
+                {
+                    const [type, dcId] = error_message.split('_MIGRATE_');
+
+                    // If auth.sendCode call on incorrect DC need change default DC, because call auth.signIn on incorrect DC return PHONE_CODE_EXPIRED error
+                    if (type === 'PHONE')
+                    {
+                        await this.client.setDefaultDc(+dcId);
+                    }
+                    else
+                    {
+                        options = {
+                            ...options,
+                            dcId: +dcId,
+                        };
+                    }
+
+                    return resolve(await this.client.call(method, params, options));
+                }
+
+                return reject(error);
+            }
+        });
+    }
+
+    public Login(phone: string, code: string, password: string): Promise<any>
+    {
+        return new Promise<any>(async (resolve, reject) => {
+            const sendCodeResult = await this.SendCode(phone);
+            console.log("sendCodeResult => ", sendCodeResult);
+
+            try
+            {
+                const signInResult = await this.SignIn(phone, sendCodeResult.phone_code_hash, code);
+                console.log("signInResult => ", signInResult);
+            }
+            catch (error)
+            {
+                if (error.error_message === "SESSION_PASSWORD_NEEDED")
+                {
+
+                }
+                return reject(error);
+            }
+
+            return resolve();
+        });
     }
 }
 
@@ -71,17 +157,13 @@ export class Socialcord
     {
         BdApi.alert("CORRM", BdApi.React.version);
 
-        const tObj: TdObject = {
-            "@type": "getAuthorizationState"
-        };
-
         const client = new TdManager();
-        client.onUpdateCallBack = this.OnRecv;
+        // client.onUpdateCallBack = this.OnRecv;
 
         try
         {
-            //const result = client.Send(tObj);
-            //console.log("Result : ", result);
+            const result = await client.Login("+201064912314", "123", "");
+            console.log("Result : ", result);
         } catch (error)
         {
             console.error("error : ", error);
@@ -98,7 +180,8 @@ export class Socialcord
 
     }
 
-    private OnRecv(update: TdObject): void {
+    private OnRecv(update: any): void
+    {
         console.log('UPDATE : ', update);
     }
 }

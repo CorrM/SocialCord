@@ -8,32 +8,92 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Socialcord = void 0;
 const bdapi_1 = { BdApi };
-const tdweb_1 = require("./public/tdweb");
+const core_1 = require("@mtproto/core");
 class TdManager {
+    // public onUpdateCallBack?: (update: TdObject) => any;
     constructor() {
-        const opts = {
-            logVerbosityLevel: 0,
-            jsLogVerbosityLevel: "error",
-            mode: "wasm",
-            instanceName: "tdlib",
-            readOnly: false,
-            isBackground: false,
-            useDatabase: false,
-            //wasmUrl: `${this.WASM_FILE_NAME}?_sw-precache=${this.WASM_FILE_HASH}`,
-            onUpdate: (update) => {
-                if (this.onUpdateCallBack)
-                    return this.onUpdateCallBack(update);
-            }
-        };
-        this.client = new tdweb_1.default(opts);
+        this.client = new core_1.MTProto({
+            api_id: TdManager.API_ID,
+            api_hash: TdManager.API_HASH
+        });
     }
-    async Send(query) {
-        console.log("Send : ", query);
-        return this.client.send(query);
+    SendCode(phone) {
+        return this.Call("auth.sendCode", {
+            phone_number: phone,
+            settings: {
+                _: "codeSettings",
+            },
+        });
+    }
+    SignIn(phone, phoneCodeHash, code) {
+        return this.Call("auth.signIn", {
+            phone_number: phone,
+            phone_code_hash: phoneCodeHash,
+            phone_code: code,
+        });
+    }
+    GetPassword() {
+        return this.Call("account.getPassword");
+    }
+    CheckPassword(srp_id, A, M1) {
+        return this.Call("auth.checkPassword", {
+            password: {
+                _: "inputCheckPasswordSRP",
+                srp_id,
+                A,
+                M1,
+            },
+        });
+    }
+    SetDefaultDc(dcId) {
+        return this.client.setDefaultDc(dcId);
+    }
+    Call(method, params = {}, options = {}) {
+        console.log(`Send "${method}" : `, params);
+        return new Promise(async (resolve, reject) => {
+            try {
+                return resolve(await this.client.call(method, params));
+            }
+            catch (error) {
+                console.log(`"${method}" error: `, error);
+                const { error_code, error_message } = error;
+                if (error_code === 303) {
+                    const [type, dcId] = error_message.split('_MIGRATE_');
+                    // If auth.sendCode call on incorrect DC need change default DC, because call auth.signIn on incorrect DC return PHONE_CODE_EXPIRED error
+                    if (type === 'PHONE') {
+                        await this.client.setDefaultDc(+dcId);
+                    }
+                    else {
+                        options = {
+                            ...options,
+                            dcId: +dcId,
+                        };
+                    }
+                    return resolve(await this.client.call(method, params, options));
+                }
+                return reject(error);
+            }
+        });
+    }
+    Login(phone, code, password) {
+        return new Promise(async (resolve, reject) => {
+            const sendCodeResult = await this.SendCode(phone);
+            console.log("sendCodeResult => ", sendCodeResult);
+            try {
+                const signInResult = await this.SignIn(phone, sendCodeResult.phone_code_hash, code);
+                console.log("signInResult => ", signInResult);
+            }
+            catch (error) {
+                if (error.error_message === "SESSION_PASSWORD_NEEDED") {
+                }
+                return reject(error);
+            }
+            return resolve();
+        });
     }
 }
-TdManager.WASM_FILE_NAME = 'a848b8b40a9281225b96b8d300a07767.wasm';
-TdManager.WASM_FILE_HASH = TdManager.WASM_FILE_NAME.replace('.wasm', '');
+TdManager.API_ID = 1827466;
+TdManager.API_HASH = "fd0ff6bb6cffff0a4e5ff308c9c4154c";
 class Socialcord {
     getName() {
         return "Socialcord";
@@ -49,14 +109,11 @@ class Socialcord {
     }
     async start() {
         bdapi_1.BdApi.alert("CORRM", bdapi_1.BdApi.React.version);
-        const tObj = {
-            "@type": "getAuthorizationState"
-        };
         const client = new TdManager();
-        client.onUpdateCallBack = this.OnRecv;
+        // client.onUpdateCallBack = this.OnRecv;
         try {
-            //const result = client.Send(tObj);
-            //console.log("Result : ", result);
+            const result = await client.Login("+201064912314", "123", "");
+            console.log("Result : ", result);
         }
         catch (error) {
             console.error("error : ", error);
@@ -71,5 +128,4 @@ class Socialcord {
     }
 }
 exports.Socialcord = Socialcord;
-
 
