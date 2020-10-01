@@ -167,6 +167,14 @@ class TdManager
             return resolve();
         });
     }
+
+    public Logout(): Promise<any>
+    {
+        return this.Call("auth.logOut", {
+            phone_number: this.Phone,
+            phone_code_hash: this.PhoneCodeHash,
+        });
+    }
 }
 
 export = (() =>
@@ -383,6 +391,15 @@ export = (() =>
                                 console.log(JSON.stringify(await this.tdClient.Login(this.settings[1].options.confirmCode.value)));
                             },
                             children: "Active"
+                        }),
+                        BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
+                            style: { float: "left" },
+                            onClick: async () =>
+                            {
+                                this.ReLoadSettings();
+                                console.log(JSON.stringify(await this.tdClient.Login(this.settings[1].options.confirmCode.value)));
+                            },
+                            children: "Logout"
                         })
                     ]
                 }))
