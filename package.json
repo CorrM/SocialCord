@@ -2,13 +2,12 @@
     "name": "socialcord",
     "version": "0.1.0",
     "description": "",
-    "main": "dist/socialcord.plugin.js",
-    "types": "dist/socialcord.plugin.d.ts",
+    "main": "dist/Socialcord.plugin.js",
+    "types": "dist/Socialcord.plugin.d.ts",
     "files": [
         "dist"
     ],
     "scripts": {
-        "copyTDLib": "xcopy /s /i /y node_modules\\tdweb\\dist dist\\socialcord",
         "fixTypeImp1": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
         "copyToPlugin": "xcopy /s /i /y dist \"%appdata%\\BetterDiscord\\plugins\"",
         "build": "tsc && npm run fixTypeImp1",
@@ -19,7 +18,8 @@
     "license": "ISC",
     "dependencies": {
         "@mtproto/core": "^4.0.1",
-        "@types/bandagedbd__bdapi": "^0.2.2"
+        "@types/bandagedbd__bdapi": "^0.2.2",
+        "@types/node": "^14.11.2"
     },
     "notes": "https://stackoverflow.com/a/57748307/3351489"
 }
