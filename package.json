@@ -1,25 +1,37 @@
 {
     "name": "socialcord",
     "version": "0.1.0",
-    "description": "",
-    "main": "dist/Socialcord.plugin.js",
-    "types": "dist/Socialcord.plugin.d.ts",
-    "files": [
-        "dist"
-    ],
+    "author": "corrm",
+    "license": "ISC",
+    "private": true,
     "scripts": {
         "fixTypeImp1": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
         "copyToPlugin": "xcopy /s /i /y dist \"%appdata%\\BetterDiscord\\plugins\"",
-        "build": "tsc && npm run fixTypeImp1",
-        "postbuild": "xcopy /s /i /y node_modules dist\\node_modules && npm run copyToPlugin",
+        "build": "npx webpack --mode=production && npm run copyToPlugin",
+        "postbuild1": "xcopy /s /i /y node_modules dist\\node_modules && npm run copyToPlugin",
         "prepare": "npm run build"
     },
-    "author": "corrm",
-    "license": "ISC",
     "dependencies": {
         "@mtproto/core": "^4.0.1",
         "@types/bandagedbd__bdapi": "^0.2.2",
         "@types/node": "^14.11.2"
     },
-    "notes": "https://stackoverflow.com/a/57748307/3351489"
+    "devDependencies": {
+        "terser-webpack-plugin": "^4.2.2",
+        "ts-loader": "^8.0.4",
+        "typescript": "^4.0.3",
+        "webpack": "^4.44.2",
+        "webpack-cli": "^3.3.12",
+        "webpack-node-externals": "^2.5.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/CorrM/SocialCord.git"
+    },
+    "keywords": [],
+    "bugs": {
+        "url": "https://github.com/CorrM/SocialCord/issues"
+    },
+    "homepage": "https://github.com/CorrM/SocialCord#readme",
+    "description": ""
 }

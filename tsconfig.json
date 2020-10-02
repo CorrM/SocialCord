@@ -1,25 +1,23 @@
 {
     "compilerOptions": {
         "module": "CommonJS",
-        "noImplicitUseStrict": true,
+        "target": "ESNext",
+        "allowJs": true,
+        "declaration": false,
         "alwaysStrict": false,
         "strict": true,
-        "declaration": false,
+        "noImplicitUseStrict": true,
         "strictNullChecks": true,
-        "target": "ESNext",
         "outDir": "dist",
-        // "outFile": "dist/Socialcord.plugin.js",
-        "moduleResolution": "node",
         "sourceMap": false,
         "lib": [
-            "es2015",
+            "ESNext",
             "dom"
         ],
-        "rootDir": "src",
         "removeComments": false
     },
     "include": [
-        "src/*.ts"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules",

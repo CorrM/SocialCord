@@ -8,11 +8,12 @@
 
 import { BdApi } from "@bandagedbd/bdapi";
 import { MTProto, getSRPParams } from "@mtproto/core";
+import { TelegramUser } from "./TelegramUser"
 
 interface SettingPanel
 {
     title: string;
-    options: { [key: string]: { value: any, [key: string]: any } };
+    options: { [key: string]: { value: any, inner: boolean, [key: string]: any } };
 }
 
 class TdManager
@@ -154,6 +155,7 @@ class TdManager
             {
                 const signInResult = await this.SignIn(code);
                 console.log("signInResult => ", signInResult);
+                return resolve(signInResult);
             }
             catch (error)
             {
@@ -177,7 +179,7 @@ class TdManager
     }
 }
 
-export = (() =>
+export default (() =>
 {
     const window = global.window as any;
     const config = {
@@ -212,34 +214,35 @@ export = (() =>
             {
                 title: "Settings",
                 options: {
-                    addDetails: { value: true, description: "Add image details (name, size, amount) in the image modal" },
-                    showAsHeader: { value: true, description: "Show image details as a details header above the image in the chat" },
-                    showOnHover: { value: false, description: "Show image details as Tooltip in the chat" },
-                    enableGallery: { value: true, description: "Displays previous/next Images in the same message in the image modal" },
-                    enableZoom: { value: true, description: "Creates a zoom lense if you press down on an image in the image modal" },
-                    enableCopyImg: { value: true, description: "Add a copy image option in the image modal" },
-                    enableSaveImg: { value: true, description: "Add a save image as option in the image modal" },
-                    useChromium: { value: false, description: "Use an inbuilt browser window instead of opening your default browser" },
-                    addUserAvatarEntry: { value: true, description: "User Avatars" },
-                    addGuildIconEntry: { value: true, description: "Server Icons" },
-                    addEmojiEntry: { value: true, description: "Custom Emojis/Emotes" }
+                    addDetails        : { value: true, inner: false, description: "Add image details (name, size, amount) in the image modal" },
+                    showAsHeader      : { value: true, inner: false, description: "Show image details as a details header above the image in the chat" },
+                    showOnHover       : { value: false, inner: false, description: "Show image details as Tooltip in the chat" },
+                    enableGallery     : { value: true, inner: false, description: "Displays previous/next Images in the same message in the image modal" },
+                    enableZoom        : { value: true, inner: false, description: "Creates a zoom lense if you press down on an image in the image modal" },
+                    enableCopyImg     : { value: true, inner: false, description: "Add a copy image option in the image modal" },
+                    enableSaveImg     : { value: true, inner: false, description: "Add a save image as option in the image modal" },
+                    useChromium       : { value: false, inner: false, description: "Use an inbuilt browser window instead of opening your default browser" },
+                    addUserAvatarEntry: { value: true, inner: false, description: "User Avatars" },
+                    addGuildIconEntry : { value: true, inner: false, description: "Server Icons" },
+                    addEmojiEntry     : { value: true, inner: false, description: "Custom Emojis/Emotes" }
                 },
             },
             {
                 title: "Telegram",
                 options: {
-                    apiID: { value: "", description: "API_ID", basis: "36%", type: "number" },
-                    apiHash: { value: "", description: "API_HASH", basis: "60%", type: "text" },
-                    phoneNumber: { value: "", description: "Phone Number", basis: "36%", type: "text" },
-                    confirmCode: { value: "", description: "Confirm Code", basis: "36%", type: "text" },
-                    twoFaCode: { value: "", description: "2FA Code", basis: "36%", type: "number" }
+                    apiID        : { value: "", inner: false, description: "API ID", basis: "36%", type: "number" },
+                    apiHash      : { value: "", inner: false, description: "API Hash", basis: "60%", type: "text" },
+                    phoneNumber  : { value: "", inner: false, description: "Phone Number", basis: "36%", type: "text" },
+                    confirmCode  : { value: "", inner: false, description: "Confirm Code", basis: "36%", type: "text" },
+                    twoFaCode    : { value: "", inner: false, description: "2FA Code", basis: "36%", type: "number" },
+                    phoneCodeHash: { value: "", inner: true }
                 }
             }
         ];
 
         constructor()
         {
-            super(...arguments);
+            super();
             this.tdClient = new TdManager(0, "", "");
         }
 
@@ -302,12 +305,9 @@ export = (() =>
 
         public async onStart(): Promise<void>
         {
-            this.tdClient.API_ID = this.settings[1].options.apiID.value;
-            this.tdClient.API_HASH = this.settings[1].options.apiHash.value;
-            this.tdClient.Phone = this.settings[1].options.phoneNumber.value
+            this.InitSettings();
 
             BdApi.alert("CORRM", BdApi.React.version);
-
             // client.onUpdateCallBack = this.OnRecv;
 
             try
@@ -325,32 +325,46 @@ export = (() =>
 
         }
 
+        private InitSettings(): void
+        {
+            this.tdClient.API_ID        = this.settings[1].options.apiID.value;
+            this.tdClient.API_HASH      = this.settings[1].options.apiHash.value;
+            this.tdClient.Phone         = this.settings[1].options.phoneNumber.value;
+            this.tdClient.PhoneCodeHash = this.settings[1].options.phoneCodeHash.value;
+        }
+
         private ReLoadSettings(): void
         {
             {
                 const settings = BDFDB.DataUtils.load(this, "settings");
                 Object.keys(settings).map((key: string) => this.settings[0].options[key].value = settings[key]);
             }
-
             {
                 const telegram = BDFDB.DataUtils.load(this, "telegram");
                 Object.keys(telegram).map((key: string) => this.settings[1].options[key].value = telegram[key]);
             }
 
             // Update telegram client info
-            this.tdClient.API_ID = this.settings[1].options.apiID.value;
-            this.tdClient.API_HASH = this.settings[1].options.apiHash.value;
+            this.InitSettings();
+        }
+        
+        private SaveSettings(): void
+        {
+            const telegram: any = {};
+            Object.keys(this.settings[1].options).forEach((key: string) => telegram[key] = this.settings[1].options[key].value);
+            BDFDB.DataUtils.save(telegram, this, "telegram");
+
+            this.ReLoadSettings();
         }
 
         public getSettingsPanel(collapseStates = {}): string | HTMLElement
         {
-            console.log(this.settings);
             let settingsPanel, settingsItems = [];
 
             settingsItems.push(BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.CollapseContainer, {
                 title: this.settings[0].title,
                 collapseStates: collapseStates,
-                children: Object.keys(this.settings[0].options).map(key => BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SettingsSaveItem, {
+                children: Object.keys(this.settings[0].options).map(key => !this.settings[0].options[key].inner && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SettingsSaveItem, {
                     className: BDFDB.disCN.marginbottom8,
                     type: "Switch",
                     plugin: this,
@@ -362,7 +376,7 @@ export = (() =>
             settingsItems.push(BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.CollapseContainer, {
                 title: "Telegram",
                 collapseStates: collapseStates,
-                children: Object.keys(this.settings[1].options).map(key => BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SettingsSaveItem, {
+                children: Object.keys(this.settings[1].options).map(key => !this.settings[1].options[key].inner && BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.SettingsSaveItem, {
                     className: BDFDB.disCN.marginbottom8,
                     type: "TextInput",
                     plugin: this,
@@ -376,19 +390,30 @@ export = (() =>
                     children: [
                         BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
                             style: { float: "left", marginRight: "6px" },
-                            children: "Send Code",
                             onClick: async () =>
                             {
                                 this.ReLoadSettings();
-                                this.tdClient.PhoneCodeHash = (await this.tdClient.SendCode()).phone_code_hash;
-                            }
+                                this.settings[1].options.phoneCodeHash.value = (await this.tdClient.SendCode()).phone_code_hash;
+                                this.SaveSettings();
+                            },
+                            children: "Send Code",
                         }),
                         BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
-                            style: { float: "left" },
+                            style: { float: "left", marginRight: "6px" },
                             onClick: async () =>
                             {
                                 this.ReLoadSettings();
-                                console.log(JSON.stringify(await this.tdClient.Login(this.settings[1].options.confirmCode.value)));
+                            },
+                            children: "GGGGGGGGGGG"
+                        }),
+                        BDFDB.ReactUtils.createElement(BDFDB.LibraryComponents.Button, {
+                            style: { float: "left", marginRight: "6px" },
+                            onClick: async () =>
+                            {
+                                this.ReLoadSettings();
+                                const user: TelegramUser = await this.tdClient.Login(this.settings[1].options.confirmCode.value);
+                                console.log(user);
+                                this.SaveSettings();
                             },
                             children: "Active"
                         }),
@@ -397,7 +422,7 @@ export = (() =>
                             onClick: async () =>
                             {
                                 this.ReLoadSettings();
-                                console.log(JSON.stringify(await this.tdClient.Login(this.settings[1].options.confirmCode.value)));
+                                console.log(JSON.stringify(await this.tdClient.Logout()));
                             },
                             children: "Logout"
                         })
@@ -413,11 +438,11 @@ export = (() =>
             if ((this as any).SettingsUpdated)
             {
                 delete (this as any).SettingsUpdated;
-                this.forceUpdateAll();
+                this.ForceUpdateAll();
             }
         }
 
-        private forceUpdateAll()
+        private ForceUpdateAll(): void
         {
             this.ReLoadSettings();
 
