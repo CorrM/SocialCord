@@ -1,8 +1,10 @@
 {
     "name": "socialcord",
     "version": "0.1.0",
+    "description": "",
+    "homepage": "https://github.com/owner/project#readme",
     "author": "corrm",
-    "license": "ISC",
+    "license": "MIT",
     "private": true,
     "scripts": {
         "fixTypeImp1": "@powershell Set-Content -Path dist\\socialcord.plugin.js -value ((Get-Content -path dist\\socialcord.plugin.js -Raw) -replace 'require\\(\\\"@bandagedbd/bdapi\\\"\\)','{ BdApi }')",
@@ -12,9 +14,7 @@
         "prepare": "npm run build"
     },
     "dependencies": {
-        "@mtproto/core": "^4.0.1",
-        "@types/bandagedbd__bdapi": "^0.2.2",
-        "@types/node": "^14.11.2"
+        "@mtproto/core": "^4.0.1"
     },
     "devDependencies": {
         "terser-webpack-plugin": "^4.2.2",
@@ -22,7 +22,9 @@
         "typescript": "^4.0.3",
         "webpack": "^4.44.2",
         "webpack-cli": "^3.3.12",
-        "webpack-node-externals": "^2.5.2"
+        "webpack-node-externals": "^2.5.2",
+        "@types/bandagedbd__bdapi": "^0.2.2",
+        "@types/node": "^14.11.2"
     },
     "repository": {
         "type": "git",
@@ -31,7 +33,5 @@
     "keywords": [],
     "bugs": {
         "url": "https://github.com/CorrM/SocialCord/issues"
-    },
-    "homepage": "https://github.com/CorrM/SocialCord#readme",
-    "description": ""
+    }
 }

@@ -1,7 +1,17 @@
 const path = require("path");
 const webpack = require("webpack");
+const PACKAGE = require('./package.json');
 const TerserPlugin = require('terser-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
+
+var banner =
+    `/**
+* @name ${PACKAGE.name}
+* @version ${PACKAGE.version}
+* @description ${PACKAGE.description}
+* 
+* @website ${PACKAGE.homepage}
+*/`;
 
 module.exports = {
     entry: "./src/index.ts",
@@ -11,10 +21,6 @@ module.exports = {
                 test: /\.tsx?$/,
                 use: "ts-loader",
                 exclude: /node_modules/,
-            },
-            {
-                test: /@bandagedbd\/bdapi/,
-                use: 'noop-loader'
             }
         ],
     },
@@ -38,12 +44,21 @@ module.exports = {
     ],
     plugins: [
         new webpack.IgnorePlugin(/request/),
+        new webpack.BannerPlugin({
+            banner: banner,
+            raw: true,
+            entryOnly: true
+        })
     ],
     optimization: {
         minimize: true,
         minimizer: [
             new TerserPlugin({
+                extractComments: false,
                 terserOptions: {
+                    output: {
+                        comments: /@name/i,
+                    },
                     keep_classnames: true,
                     keep_fnames: true
                 }
