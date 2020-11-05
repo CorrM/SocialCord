@@ -239,6 +239,7 @@ export default (() =>
                                         limit: 50,
                                         hash: ""
                                     });
+                                    console.log(dialogs.messages[0]);
                                     dialogs.users.forEach((user: User) => console.log(user.first_name));
                                 }
                                 catch (error)
