@@ -1,7 +1,7 @@
-import { BdApiModule } from "@bandagedbd/bdapi";
+import { BdApiModule, MonkeyPatchOptions } from "@bandagedbd/bdapi";
 import { SettingPanel } from "./utils/SettingPanel";
 import { TdManager } from "./telegram/TdManager";
-import { TelegramUser } from "./telegram/TelegramUser"
+import { Dialogs, UserLogin, User } from "./telegram/TelegramInterface"
 
 declare var BdApi: typeof BdApiModule;
 
@@ -40,31 +40,45 @@ export default (() =>
             {
                 title: "Settings",
                 options: {
-                    addDetails        : { value: true, inner: false, description: "Add image details (name, size, amount) in the image modal" },
-                    showAsHeader      : { value: true, inner: false, description: "Show image details as a details header above the image in the chat" },
-                    showOnHover       : { value: false, inner: false, description: "Show image details as Tooltip in the chat" },
-                    enableGallery     : { value: true, inner: false, description: "Displays previous/next Images in the same message in the image modal" },
-                    enableZoom        : { value: true, inner: false, description: "Creates a zoom lense if you press down on an image in the image modal" },
-                    enableCopyImg     : { value: true, inner: false, description: "Add a copy image option in the image modal" },
-                    enableSaveImg     : { value: true, inner: false, description: "Add a save image as option in the image modal" },
-                    useChromium       : { value: false, inner: false, description: "Use an inbuilt browser window instead of opening your default browser" },
+                    addDetails: { value: true, inner: false, description: "Add image details (name, size, amount) in the image modal" },
+                    showAsHeader: { value: true, inner: false, description: "Show image details as a details header above the image in the chat" },
+                    showOnHover: { value: false, inner: false, description: "Show image details as Tooltip in the chat" },
+                    enableGallery: { value: true, inner: false, description: "Displays previous/next Images in the same message in the image modal" },
+                    enableZoom: { value: true, inner: false, description: "Creates a zoom lense if you press down on an image in the image modal" },
+                    enableCopyImg: { value: true, inner: false, description: "Add a copy image option in the image modal" },
+                    enableSaveImg: { value: true, inner: false, description: "Add a save image as option in the image modal" },
+                    useChromium: { value: false, inner: false, description: "Use an inbuilt browser window instead of opening your default browser" },
                     addUserAvatarEntry: { value: true, inner: false, description: "User Avatars" },
-                    addGuildIconEntry : { value: true, inner: false, description: "Server Icons" },
-                    addEmojiEntry     : { value: true, inner: false, description: "Custom Emojis/Emotes" }
+                    addGuildIconEntry: { value: true, inner: false, description: "Server Icons" },
+                    addEmojiEntry: { value: true, inner: false, description: "Custom Emojis/Emotes" }
                 },
             },
             {
                 title: "Telegram",
                 options: {
-                    apiID        : { value: "", inner: false, description: "API ID", basis: "36%", type: "number" },
-                    apiHash      : { value: "", inner: false, description: "API Hash", basis: "60%", type: "text" },
-                    phoneNumber  : { value: "", inner: false, description: "Phone Number", basis: "36%", type: "text" },
-                    confirmCode  : { value: "", inner: false, description: "Confirm Code", basis: "36%", type: "text" },
-                    twoFaCode    : { value: "", inner: false, description: "2FA Code", basis: "36%", type: "number" },
+                    apiID: { value: "", inner: false, description: "API ID", basis: "36%", type: "number" },
+                    apiHash: { value: "", inner: false, description: "API Hash", basis: "60%", type: "text" },
+                    phoneNumber: { value: "", inner: false, description: "Phone Number", basis: "36%", type: "text" },
+                    confirmCode: { value: "", inner: false, description: "Confirm Code", basis: "36%", type: "text" },
+                    twoFaCode: { value: "", inner: false, description: "2FA Code", basis: "36%", type: "number" },
                     phoneCodeHash: { value: "", inner: true }
                 }
             }
         ];
+
+        private patchedModules: MonkeyPatchOptions = {
+            before: {
+                PeopleListSectionedLazy: "default",
+            },
+            after: {
+                TabBar: "render",
+                PeopleListSectionedLazy: "default",
+                FriendRow: "render",
+                PendingRow: "default",
+                BlockedRow: "render",
+                PeopleListItem: ["render", "componentDidMount", "componentWillUnmount"]
+            }
+        };
 
         constructor()
         {
@@ -153,9 +167,9 @@ export default (() =>
 
         private InitSettings(): void
         {
-            this.tdClient.API_ID        = this.settings[1].options.apiID.value;
-            this.tdClient.API_HASH      = this.settings[1].options.apiHash.value;
-            this.tdClient.Phone         = this.settings[1].options.phoneNumber.value;
+            this.tdClient.API_ID = this.settings[1].options.apiID.value;
+            this.tdClient.API_HASH = this.settings[1].options.apiHash.value;
+            this.tdClient.Phone = this.settings[1].options.phoneNumber.value;
             this.tdClient.PhoneCodeHash = this.settings[1].options.phoneCodeHash.value;
         }
 
@@ -228,7 +242,23 @@ export default (() =>
                             style: { float: "left", marginRight: "6px" },
                             onClick: async () =>
                             {
-                                this.ReLoadSettings();
+                                try
+                                {
+                                    const dialogs: Dialogs = await this.tdClient.Call("messages.getDialogs", {
+                                        offset_date: 0,
+                                        offset_id: 0,
+                                        offset_peer: {
+                                            _: "inputPeerEmpty"
+                                        },
+                                        limit: 50,
+                                        hash: ""
+                                    });
+                                    dialogs.users.forEach((user: User) => console.log(user.first_name));
+                                }
+                                catch (error)
+                                {
+                                    console.error(error);
+                                }
                             },
                             children: "GGGGGGGGGGG"
                         }),
@@ -237,7 +267,7 @@ export default (() =>
                             onClick: async () =>
                             {
                                 this.ReLoadSettings();
-                                const user: TelegramUser = await this.tdClient.Login(this.settings[1].options.confirmCode.value);
+                                const user: UserLogin = await this.tdClient.Login(this.settings[1].options.confirmCode.value);
                                 console.log(user);
                                 this.SaveSettings();
                             },
@@ -275,5 +305,31 @@ export default (() =>
             BDFDB.PatchUtils.forceAllUpdates(this);
             BDFDB.MessageUtils.rerenderAll();
         }
+
+        public processTabBar(e: any)
+        {
+            console.log("tabBar", e);
+        }
+        public processPeopleListSectionedLazy(e: any)
+        {
+            console.log("processPeopleListSectionedLazy", e);
+        }
+        public processPeopleListItem(e: any)
+        {
+            console.log("processPeopleListItem", e);
+        }
+        public processBlockedRow(e: any)
+        {
+            console.log("processBlockedRow", e);
+        }
+        public processPendingRow(e: any)
+        {
+            console.log("processPendingRow", e);
+        }
+        public processFriendRow(e: any)
+        {
+            console.log("processFriendRow", e);
+        }
+
     };
 })();

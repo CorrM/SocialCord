@@ -29,6 +29,7 @@ export class TdManager
     public Phone: string;
     public PhoneCodeHash: string;
     // public onUpdateCallBack?: (update: TdObject) => any;
+    
     public constructor(apiID: number, apiHash: string, phone: string)
     {
         this._API_ID = apiID;
