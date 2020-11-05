@@ -66,20 +66,6 @@ export default (() =>
             }
         ];
 
-        private patchedModules: MonkeyPatchOptions = {
-            before: {
-                PeopleListSectionedLazy: "default",
-            },
-            after: {
-                TabBar: "render",
-                PeopleListSectionedLazy: "default",
-                FriendRow: "render",
-                PendingRow: "default",
-                BlockedRow: "render",
-                PeopleListItem: ["render", "componentDidMount", "componentWillUnmount"]
-            }
-        };
-
         constructor()
         {
             super();
